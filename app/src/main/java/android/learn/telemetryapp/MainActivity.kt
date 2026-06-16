@@ -164,7 +164,7 @@ fun LiquidGlassTelemetryChart(
    onSelectionCleared: () -> Unit,
    fetchDataValues: (
       firstNumValues: Int,
-      action: (index: Int, value: Float, sequenceId: Long) -> Unit
+      action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit
    ) -> Unit,
    modifier: Modifier = Modifier
 ) {
@@ -222,7 +222,7 @@ fun TelemetryChart(
    onSelectionCleared: () -> Unit,
    fetchDataValues: (
       firstNumValues: Int,
-      action: (index: Int, value: Float, sequenceId: Long) -> Unit
+      action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit
    ) -> Unit,
    modifier: Modifier = Modifier
 ) {
@@ -247,10 +247,10 @@ fun TelemetryChart(
                   val targetIndex = (fraction * (windowSize - 1f)).toInt()
 
                   viewModel.withBufferLock {
-                     fetchDataValues(windowSize) { index, _, sequenceid ->
+                     fetchDataValues(windowSize) { index, _, sequenceId, _ ->
                         if (index == targetIndex) {
                            // lock onto this id! it will never change for this data point
-                           onSelectionChanged(sequenceid)
+                           onSelectionChanged(sequenceId)
                         }
                      }
                   }
@@ -282,14 +282,46 @@ fun TelemetryChart(
          // STEP 1: min/max
          // -------------------------
          val minY = 0f
-         var maxY = Float.MIN_VALUE
+         var scale = 0f
+// -------------------------
+         // STEP 3: build line path
+         var isFirstPoint = true
+         // -------------------------
+         fetchDataValues(windowSize) { index, value, sequenceId, currentMaxValue ->
+            scale = currentMaxValue
+            val raw = if (scale != 0f) value / scale else .001f
+            val normalized = raw
+            Log.d("VALUE", "$value")
+            val x = ((index / (windowSize - 1f)) * chartWidth) + paddingLeft
 
-         fetchDataValues(windowSize) { index, v, sequenceId ->
-            // minY = minOf(minY, v)
+            val y = chartHeight * (1 - normalized)
 
-            maxY = maxOf(maxY, v)
+
+            if (isFirstPoint) {
+               linePath.moveTo(x, y)
+
+               fillPath.moveTo(x, chartHeight)
+               // start fill path at baseline
+               fillPath.lineTo(x, y)
+
+               isFirstPoint = false
+            } else {
+               linePath.lineTo(x, y)
+               fillPath.lineTo(x, y)
+            }
+            lastXvalue = x
+            lastYvalue = y
+
+
+            if (selectedSequenceId == sequenceId) {
+               snappedTelemetryValue = value
+               snappedX = x
+               snappedY = y
+            }
+
          }
-         val scale = maxY
+         val maxY = scale
+
 
          // -----------------------------------------------------------------
          // DRAW AXIS TEXT LABELS
@@ -338,42 +370,7 @@ fun TelemetryChart(
          // STEP 2: RESET PATHS (IMPORTANT)
          // -------------------------
 
-         var isFirstPoint = true
-         // -------------------------
-         // STEP 3: build line path
-         // -------------------------
-         fetchDataValues(windowSize) { index, value, sequenceId ->
-            val raw = if (scale != 0f) value / scale else .001f
-            val normalized = raw
-            Log.d("VALUE", "$value")
-            val x = ((index / (windowSize - 1f)) * chartWidth) + paddingLeft
 
-            val y = chartHeight * (1 - normalized)
-
-
-            if (isFirstPoint) {
-               linePath.moveTo(x, y)
-
-               fillPath.moveTo(x, chartHeight)
-               // start fill path at baseline
-               fillPath.lineTo(x, y)
-
-               isFirstPoint = false
-            } else {
-               linePath.lineTo(x, y)
-               fillPath.lineTo(x, y)
-            }
-            lastXvalue = x
-            lastYvalue = y
-
-
-            if (selectedSequenceId == sequenceId) {
-               snappedTelemetryValue = value
-               snappedX = x
-               snappedY = y
-            }
-
-         }
 
          // close fill shape
          if (!isFirstPoint) {

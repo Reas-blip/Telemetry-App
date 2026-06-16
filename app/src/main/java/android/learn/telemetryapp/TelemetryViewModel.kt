@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.koin.core.KoinApplication.Companion.init
 import javax.inject.Inject
 
 @HiltViewModel
@@ -53,15 +52,15 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
       metricsEngine.startEngine(viewModelScope)
    }
 
-   fun forEachCpuValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long) -> Unit) {
-      metricsEngine.cpuValues.forEachValues(firstNumValues, action)
+   fun forEachCpuValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit) {
+      metricsEngine.cpuValues.forEachValues(action)
    }
 
-   fun forEachMemoryValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long) -> Unit) {
-      metricsEngine.memoryValues.forEachValues(firstNumValues, action)
+   fun forEachMemoryValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit) {
+      metricsEngine.memoryValues.forEachValues(action)
    }
 
-   fun forEachNetworkValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long) -> Unit) {
-      metricsEngine.networkValues.forEachValues(firstNumValues, action)
+   fun forEachNetworkValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit) {
+      metricsEngine.networkValues.forEachValues(action)
    }
 }

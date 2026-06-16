@@ -1,7 +1,7 @@
 package android.learn.telemetryapp.engine
 
-import android.util.Log
-import androidx.compose.runtime.rememberCoroutineScope
+import android.learn.telemetryapp.datastructures.RingBuffer
+import android.learn.telemetryapp.datastructures.RingBufferReader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -19,7 +19,6 @@ class MetricsEngine @Inject constructor(
 
    private var engineJob: Job? = null
    private var clockTime = (1000 / 30).toLong()
-   private var valueIndex = 0f
 
 
    private val cpuBuffer = RingBuffer()
@@ -62,7 +61,8 @@ class MetricsEngine @Inject constructor(
 
    fun applyCallback(noOfValues: Int, metricValues: RingBuffer, callback: (Float) -> Unit) {
       synchronized(lock) {
-         metricValues.forEachValues(noOfValues) {index, metricValue, sequenceId -> callback(metricValue) }
+         metricValues.changeBufferSize(noOfValues)
+         metricValues.forEachValues { index, metricValue, sequenceId, currentMax -> callback(metricValue) }
       }
    }
 
