@@ -1,5 +1,6 @@
 package android.learn.telemetryapp
 
+import android.learn.telemetryapp.datastructures.RingBufferReader
 import android.learn.telemetryapp.engine.MetricsEngine
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -16,6 +17,8 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
 
    private var _frame = MutableStateFlow(0)
    val frame = _frame.asStateFlow()
+
+
 
    init {
       metricsEngine.setUpdateListener { _frame.value++ }
@@ -51,6 +54,8 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
    fun resume() = viewModelScope.launch(Dispatchers.IO) {
       metricsEngine.startEngine(viewModelScope)
    }
+
+   fun getCpuReader(): RingBufferReader = metricsEngine.cpuValues
 
    fun forEachCpuValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit) {
       metricsEngine.cpuValues.forEachValues(action)

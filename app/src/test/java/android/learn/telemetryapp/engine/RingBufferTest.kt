@@ -79,7 +79,7 @@ class RingBufferTest {
       val sequences = mutableListOf<Long>()
       val logicalIndices = mutableListOf<Int>()
 
-      ringBuffer.forEachValues { index, value, sequenceId ->
+      ringBuffer.forEachValues { index, value, sequenceId, _ ->
          logicalIndices.add(index)
          items.add(value)
          sequences.add(sequenceId)
@@ -255,7 +255,7 @@ class RingBufferEdgeTestCase {
       ringBuffer.insertNewValue(3.3f)
 
       var parsedSequenceId = -1L
-      ringBuffer.forEachValues { _, _, sequenceId ->
+      ringBuffer.forEachValues { _, _, sequenceId, _ ->
          parsedSequenceId = sequenceId
       }
 
