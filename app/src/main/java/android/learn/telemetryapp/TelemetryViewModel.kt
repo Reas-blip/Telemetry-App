@@ -31,7 +31,7 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
 
    fun getValueTimeStamp(valueIndex: Int) {
       withBufferLock {
-         metricsEngine.cpuValues[valueIndex]
+         metricsEngine.cpuValues.ringBuffer[valueIndex]
       }
    }
    override fun onCleared() {
@@ -55,17 +55,19 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
       metricsEngine.startEngine(viewModelScope)
    }
 
-   fun getCpuReader(): RingBufferReader = metricsEngine.cpuValues
+   fun getCpuReader(): RingBufferReader = metricsEngine.cpuValues.ringBuffer
+   fun getNetworkReader(): RingBufferReader = metricsEngine.networkValues.ringBuffer
+   fun getMemoryReader(): RingBufferReader = metricsEngine.memoryValues.ringBuffer
 
    fun forEachCpuValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit) {
-      metricsEngine.cpuValues.forEachValues(action)
+      metricsEngine.cpuValues.ringBuffer.forEachValues(action)
    }
 
    fun forEachMemoryValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit) {
-      metricsEngine.memoryValues.forEachValues(action)
+      metricsEngine.memoryValues.ringBuffer.forEachValues(action)
    }
 
    fun forEachNetworkValues(firstNumValues: Int, action: (index: Int, value: Float, sequenceId: Long, currentMaxValue: Float) -> Unit) {
-      metricsEngine.networkValues.forEachValues(action)
+      metricsEngine.networkValues.ringBuffer.forEachValues(action)
    }
 }

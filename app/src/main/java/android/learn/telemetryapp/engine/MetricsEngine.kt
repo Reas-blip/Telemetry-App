@@ -1,7 +1,10 @@
 package android.learn.telemetryapp.engine
 
+import android.learn.telemetryapp.TelemetryChart
+import android.learn.telemetryapp.datastructures.ChartGeometry
 import android.learn.telemetryapp.datastructures.RingBuffer
 import android.learn.telemetryapp.datastructures.RingBufferReader
+import android.learn.telemetryapp.datastructures.TelemetrySeries
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -15,24 +18,23 @@ class MetricsEngine @Inject constructor(
    private val memoryGenerator: MemoryGenerator,
    private val networkGenerator: NetworkGenerator,
 ) {
-   private var frequency: Int = 3000
-
+   private var frequency: Int = 120
    private var engineJob: Job? = null
-   private var clockTime = (1000 / 30).toLong()
+   private var clockTime = (1000 / frequency).toLong()
 
 
-   private val cpuBuffer = RingBuffer()
+   private val cpuSeries = TelemetrySeries()
 
-   val cpuValues: RingBufferReader
-      get() = cpuBuffer
+   val cpuValues:  TelemetrySeries
+      get() = cpuSeries
+   val memoryValues:  TelemetrySeries
+      get() = memorySeries
 
-   val memoryValues: RingBufferReader
-      get() = memoryBuffer
-   private val memoryBuffer = RingBuffer()
+   private val memorySeries = TelemetrySeries()
 
-   val networkValues: RingBufferReader
-      get() = networkBuffer
-   private val networkBuffer = RingBuffer()
+   val networkValues:  TelemetrySeries
+      get() = networkSeries
+   private val networkSeries = TelemetrySeries()
 
    private var onUpdate: () -> Unit = {}
 
@@ -48,15 +50,16 @@ class MetricsEngine @Inject constructor(
    }
 
    private val lock = Any()
-
+   private var lastUiUpdateTime = 0L
+   private val uiUpdateIntervalMs = 16L // ~60 FPS update rate
    private fun insertValues(cpuValue: Float, memoryValue: Float, networkValue: Float) {
       synchronized(lock) {
-         cpuBuffer.insertNewValue(cpuValue)
-         memoryBuffer.insertNewValue(memoryValue)
-         networkBuffer.insertNewValue(networkValue)
-         // This is used to Notify ViewModel of state changes
-         onUpdate.invoke()
+         cpuSeries.push(cpuValue)
+         memorySeries.push(memoryValue)
+         networkSeries.push(networkValue)
       }
+      // This is used to Notify ViewModel of state changes
+      onUpdate.invoke()
    }
 
    fun applyCallback(noOfValues: Int, metricValues: RingBuffer, callback: (Float) -> Unit) {
@@ -74,9 +77,9 @@ class MetricsEngine @Inject constructor(
       }
    }
    fun clearBuffers() {
-      cpuBuffer.clear()
-      memoryBuffer.clear()
-      networkBuffer.clear()
+      cpuSeries.clear()
+      memorySeries.clear()
+      networkSeries.clear()
    }
    fun <T> withCpuBufferLock(block: () -> T): T {
       synchronized(lock) {
@@ -93,7 +96,12 @@ class MetricsEngine @Inject constructor(
 
          // Read clockTime safely outside or inside lock
          val currentDelay = synchronized(lock) { clockTime }
-         delay(currentDelay)
+
+         if (currentDelay <= 0L) {
+            delay(1L)
+         } else {
+            delay(currentDelay)
+         }
       }
    }
 

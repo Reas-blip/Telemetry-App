@@ -16,13 +16,12 @@ secrets {
    defaultPropertiesFileName = "local.defaults.properties"
 }
 android {
-   namespace = "android.learn.telemetryapp" +
-           ""
+   namespace = "android.learn.telemetryapp"
    compileSdk = 36
 
+   testBuildType = "release"
    defaultConfig {
-      applicationId = "android.learn.telemetryapp" +
-              ""
+      applicationId = "android.learn.telemetryapp"
       minSdk = 24
       targetSdk = 35
       versionCode = 1
@@ -52,12 +51,16 @@ android {
          signingConfig = signingConfigs.getByName("debug") // Uses debug key for easy local deployment
       }
       release {
-         isMinifyEnabled = false
-         isProfileable = true
-//         proguardFiles(
-//            getDefaultProguardFile("proguard-android-optimize.txt"),
-//            "proguard-rules.pro"
-//         )
+         isMinifyEnabled = true
+         isShrinkResources = true
+
+         // 🔥 CRITICAL: Directs the release build to use the auto-generated debug key
+         signingConfig = signingConfigs.getByName("debug")
+
+         proguardFiles(
+            getDefaultProguardFile("proguard-android-optimize.txt"),
+            "proguard-rules.pro"
+         )
       }
    }
    testOptions {
