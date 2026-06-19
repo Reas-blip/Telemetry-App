@@ -52,12 +52,36 @@ import android.learn.telemetryapp.GridLinesConfiguration.FixedStep
 import android.util.Log.d
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.viewinterop.AndroidView
+import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeChild
+import dev.chrisbanes.haze.hazeEffect
 import kotlin.math.absoluteValue
 import kotlin.math.floor
 
@@ -70,7 +94,9 @@ class MainActivity : ComponentActivity() {
       setContent {
          TelemetryAppTheme {
             val frame = telemetryViewModel.frame.collectAsState().value
-            Scaffold() { innerPadding ->
+            Scaffold(
+               topBar = {FloatingTopAppBar()}
+            ) { innerPadding ->
 
                Column(
                   modifier = Modifier
@@ -193,6 +219,51 @@ fun LiquidGlassTelemetryChart(
    }
 }
 
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FloatingTopAppBar() {
+   // No hardcoded height or fillMaxSize here!
+
+   val hazeState = remember { HazeState() }
+   Surface(
+      modifier = Modifier
+         .fillMaxWidth()
+         .windowInsetsPadding(WindowInsets.statusBars)
+         .padding(horizontal = 16.dp, vertical = 8.dp)
+         .hazeEffect(
+            state = hazeState,
+            style = HazeStyle(
+               tint = HazeTint(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .8f)),
+               blurRadius = 24.dp
+            )
+         )
+      , // This creates the "floating" gaps
+      shape = RoundedCornerShape(24.dp),
+      tonalElevation = 6.dp
+   ) {
+      TopAppBar(
+         title = { Text("Floating Bar") },
+         navigationIcon = {
+            IconButton(onClick = { /* TODO */ }) {
+               Icon(Icons.Default.Menu, contentDescription = "Menu")
+            }
+         },
+         actions = {
+            IconButton(onClick = { /* TODO */ }) {
+               Icon(Icons.Default.PlayCircle, contentDescription = "Start Engine",
+               modifier = Modifier.fillMaxSize())
+            }
+            IconButton(onClick = { /* TODO */ }) {
+               Icon(Icons.Default.StopCircle, contentDescription = "Stop Engine", modifier = Modifier.fillMaxSize())
+            }
+         },
+         colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = Color.Transparent // Allows Surface color & shape to show
+         )
+      )
+   }
+}
 
 @Composable
 fun TelemetryChart(
