@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,10 +22,20 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
 
 
    init {
+
       metricsEngine.setUpdateListener { _frame.value++ }
-      metricsEngine.startEngine(viewModelScope)
+//      metricsEngine.startEngine(viewModelScope)
    }
 
+
+     fun testLoop(){
+      viewModelScope.launch(Dispatchers.IO){
+      while (true) {
+         _frame.value++
+      }
+
+      }
+   }
    fun <T> withBufferLock(block: () -> T): T {
       return metricsEngine.withCpuBufferLock(block)
    }

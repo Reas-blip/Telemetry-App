@@ -26,7 +26,7 @@ sealed interface GridLinesConfiguration {
     * Fixes the exact numerical distance between lines.
     * Example: A step of 20.0f draws lines at 0, 20, 40, 60...
     */
-   data class FixedStep(val stepValue: Float, val showLabel: Boolean = false) : GridLinesConfiguration {
+   data class FixedStep(val stepValue: Float, val showLabel: Boolean = true) : GridLinesConfiguration {
       init { require(stepValue > 0f) { "Step value must be greater than 0" } }
    }
 
@@ -34,7 +34,7 @@ sealed interface GridLinesConfiguration {
     * Fixes the exact count of grid lines distributed across the viewport.
     * Example: A count of 5 splits the visible Y-range evenly into 4 zones.
     */
-   data class FixedCount(val lineCount: Int, val showLabel: Boolean = false) : GridLinesConfiguration {
+   data class FixedCount(val lineCount: Int, val showLabel: Boolean = true) : GridLinesConfiguration {
       init { require(lineCount >= 2) { "Must have at least 2 grid lines (min and max boundaries)" } }
    }
 }

@@ -11,6 +11,10 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.concurrent.atomics.AtomicArray
+import kotlin.concurrent.atomics.AtomicLong
+import kotlin.concurrent.atomics.AtomicLongArray
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 
 class MetricsEngine @Inject constructor(
@@ -18,12 +22,16 @@ class MetricsEngine @Inject constructor(
    private val memoryGenerator: MemoryGenerator,
    private val networkGenerator: NetworkGenerator,
 ) {
-   private var frequency: Int = 120
+   private var frequency: Int = 100
    private var engineJob: Job? = null
-   private var clockTime = (1000 / frequency).toLong()
+    @OptIn(ExperimentalAtomicApi::class)
+    private var clockTime = AtomicLong((1000 / frequency).toLong())
 
 
+   @OptIn(ExperimentalAtomicApi::class)
+   private val atomicArray = AtomicArray(10, {1 + it})
    private val cpuSeries = TelemetrySeries()
+
 
    val cpuValues:  TelemetrySeries
       get() = cpuSeries
@@ -38,10 +46,11 @@ class MetricsEngine @Inject constructor(
 
    private var onUpdate: () -> Unit = {}
 
+   @OptIn(ExperimentalAtomicApi::class)
    fun setFrequency(newFrequency: Int) {
       synchronized(lock) {
          frequency = newFrequency
-         clockTime = (1000 / newFrequency).toLong()
+         clockTime = AtomicLong((1000 / newFrequency).toLong())
       }
    }
 
@@ -72,7 +81,7 @@ class MetricsEngine @Inject constructor(
    fun startEngine(scope: CoroutineScope) {
       if (engineJob?.isActive == true) return // Already running
 
-      engineJob = scope.launch(Dispatchers.IO) {
+      engineJob = scope.launch(Dispatchers.Default) {
          insertGeneratedValues()
       }
    }
@@ -86,6 +95,7 @@ class MetricsEngine @Inject constructor(
          return block()
       }
    }
+   @OptIn(ExperimentalAtomicApi::class)
    private suspend fun insertGeneratedValues() {
       while (engineJob?.isActive == true) {
          val cpuValue = cpuGenerator.next()
@@ -95,12 +105,11 @@ class MetricsEngine @Inject constructor(
          insertValues(cpuValue, memoryValue, networkValue)
 
          // Read clockTime safely outside or inside lock
-         val currentDelay = synchronized(lock) { clockTime }
 
-         if (currentDelay <= 0L) {
+         if (clockTime.load() <= 0L) {
             delay(1L)
          } else {
-            delay(currentDelay)
+            delay(clockTime.load())
          }
       }
    }
