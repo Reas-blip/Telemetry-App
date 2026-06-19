@@ -101,6 +101,7 @@ dependencies {
    implementation(libs.koin.androidx.compose)
    implementation(libs.hilt.android)
 
+   implementation("dev.chrisbanes.haze:haze:1.7.2") // Or the latest version
    ksp(libs.hilt.android.compiler)
 //   implementation(libs.dagger)
 //   ksp(libs.dagger.compiler)
