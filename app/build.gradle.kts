@@ -94,17 +94,11 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile>().configureEa
 dependencies {
 
    implementation(libs.androidx.runner)
-   // Core Koin for Android
    implementation(libs.koin.android)
-
-   // Koin Jetpack Compose support
    implementation(libs.koin.androidx.compose)
    implementation(libs.hilt.android)
-
-   implementation("dev.chrisbanes.haze:haze:1.7.2") // Or the latest version
+   implementation("dev.chrisbanes.haze:haze:1.7.2")
    ksp(libs.hilt.android.compiler)
-//   implementation(libs.dagger)
-//   ksp(libs.dagger.compiler)
    implementation(libs.retrofit)
    implementation(libs.converter.gson)
    implementation(libs.androidx.activity.ktx)
