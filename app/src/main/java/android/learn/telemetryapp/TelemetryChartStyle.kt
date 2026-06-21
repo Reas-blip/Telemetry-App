@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.sp
 
 data class TelemetryChartStyle(
    val traceColor: Color = Color(0xFF9C27B0),
-   val fillGradientColors: List<Color> = listOf(Color(0xFF9C27B0).copy(alpha = 0.4f), Color.Transparent),
+   val fillGradientColors: List<Color> = listOf(traceColor.copy(alpha = 0.4f), Color.Transparent),
    val crosshairColor: Color = Color.Magenta.copy(alpha = 0.6f),
    val anchorNodeColor: Color = Color.Green,
    val textStyle: TextStyle = TextStyle(color = Color.Gray, fontSize = 10.sp),
@@ -17,6 +17,7 @@ data class TelemetryChartStyle(
    val xAxisPadding: Dp = 40.dp,
    val windowSize: Int = 200,
    val absoluteMaxValue: Float? = null,
+   val autoScale: Boolean = false,
    val yGridLinesConfiguration: GridLinesConfiguration = GridLinesConfiguration.FixedCount(5),
    val xGridLinesConfiguration: GridLinesConfiguration = GridLinesConfiguration.FixedCount(5)
 )
