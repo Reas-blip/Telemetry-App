@@ -17,6 +17,7 @@ import android.learn.telemetryapp.GridLinesConfiguration.FixedCount
 import android.learn.telemetryapp.GridLinesConfiguration.FixedStep
 import android.learn.telemetryapp.datastructures.RingBufferReader
 import android.os.Bundle
+import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
@@ -110,6 +111,7 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlin.math.absoluteValue
 import kotlin.math.floor
+import kotlin.math.round
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -1070,7 +1072,8 @@ private fun drawFixedStepGridY(
    gridPaint: Paint,
    density: Density
 ) {
-   var yAxisGridPoint = (floor((dynamicScalePeak / yGridStep).toDouble()) * yGridStep).toFloat()
+
+   var yAxisGridPoint = ( round(dynamicScalePeak / yGridStep) * yGridStep)
    while (yAxisGridPoint >= 0) {
       val labelText = String.format("%.1f", yAxisGridPoint)
       val textWidth = textPaint.measureText(labelText)
