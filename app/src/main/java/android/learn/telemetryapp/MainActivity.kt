@@ -1,6 +1,5 @@
 package android.learn.telemetryapp
 
-import android.R.attr.rotation
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color as androidColor
@@ -17,7 +16,6 @@ import android.learn.telemetryapp.GridLinesConfiguration.FixedCount
 import android.learn.telemetryapp.GridLinesConfiguration.FixedStep
 import android.learn.telemetryapp.datastructures.RingBufferReader
 import android.os.Bundle
-import android.util.Log
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.view.ViewGroup
@@ -26,7 +24,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -46,17 +43,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
@@ -110,7 +102,6 @@ import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import kotlin.math.absoluteValue
-import kotlin.math.floor
 import kotlin.math.round
 
 @AndroidEntryPoint
@@ -295,14 +286,14 @@ private fun ColumnScope.TelemetryTile(
 
       // NOW SAFE: This canvas chart will NEVER recompose when the dropdown toggles!
       LiquidGlassTelemetryChart(
-         hazeState = hazeState,
          modifier = modifier,
+         hazeState = hazeState,
          getReader = { getReader() },
          getFrame = { getFrame() },
          getSelectedSequenceId = { selectedId },
          onSelectionChanged = { selectedId = it },
-         onSelectionCleared = { selectedId = -1L },
          chartStyle = chartStyle,
+         onSelectionCleared = { selectedId = -1L },
          withBufferLock = withBufferLock
       )
    }
@@ -407,8 +398,8 @@ private fun DropDown(
 
          val xGridText = "x"
          val yGridText = "y"
-         val chipSelectedColor:  Color = Color(0xFF00FF88)
-         val containerColor: Color = Color(0xFF40736E)
+         val containerColor:  Color = Color(0xFF00FF88)
+         val chipSelectedColor: Color = Color(0xFF40736E)
          FilterChip(
             selected = autoScaleGraph,
             onClick = onClickAutoScaleChip,
@@ -484,13 +475,13 @@ private fun GridCountSlider(
 
 @Composable
 fun LiquidGlassTelemetryChart(
+   modifier: Modifier = Modifier,
    hazeState: HazeState,
    getReader: () -> RingBufferReader,
    getFrame: () -> Int,
    getSelectedSequenceId: () -> Long,
    onSelectionChanged: (Long) -> Unit,
    chartStyle: TelemetryChartStyle = TelemetryChartStyle(),
-   modifier: Modifier = Modifier,
    onSelectionCleared: () -> Unit,
    withBufferLock: (() -> Unit) -> Unit
 ) {
@@ -759,7 +750,6 @@ private class TelemetrySurfaceView(
 
    @Volatile
    private var isRunning = false
-   private var density = context.resources.displayMetrics.density
 
    private var getReader: (() -> RingBufferReader)? = null
    private var getFrame: (() -> Int)? = null
