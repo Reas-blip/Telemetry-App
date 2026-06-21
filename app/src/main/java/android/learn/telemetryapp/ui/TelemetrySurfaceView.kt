@@ -1,4 +1,4 @@
-package android.learn.telemetryapp
+package android.learn.telemetryapp.ui
 
 
 import android.content.Context
@@ -12,8 +12,6 @@ import android.graphics.PorterDuff
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
-import android.learn.telemetryapp.GridLinesConfiguration.FixedCount
-import android.learn.telemetryapp.GridLinesConfiguration.FixedStep
 import android.learn.telemetryapp.datastructures.RingBufferReader
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -258,7 +256,7 @@ class TelemetrySurfaceView(
       }
 
       when (val config = chartStyle.yGridLinesConfiguration) {
-         is FixedStep -> {
+         is GridLinesConfiguration.FixedStep -> {
             drawFixedStepGridY(
                canvas = canvas, dynamicScalePeak = smoothPeak, paddingTop = paddingTop,
                paddingLeft = paddingLeft, labelHeight = labelHeight, chartHeight = chartHeight,
@@ -267,7 +265,7 @@ class TelemetrySurfaceView(
             )
          }
 
-         is FixedCount -> {
+         is GridLinesConfiguration.FixedCount -> {
             drawFixedCountGridY(
                canvas = canvas, width = chartWidth, height = chartHeight, paddingLeft = paddingLeft,
                paddingTop = paddingTop, lineCount = config.lineCount, dynamicScalePeak = smoothPeak,

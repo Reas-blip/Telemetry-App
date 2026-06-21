@@ -1,5 +1,4 @@
-
-package android.learn.telemetryapp
+package android.learn.telemetryapp.ui
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle

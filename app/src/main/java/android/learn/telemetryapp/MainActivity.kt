@@ -1,23 +1,14 @@
 package android.learn.telemetryapp
 
-import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Color as androidColor
-import android.graphics.DashPathEffect
-import android.graphics.LinearGradient
-import android.graphics.Paint
-import android.graphics.Path
 import android.graphics.PixelFormat
-import android.graphics.PorterDuff
-import android.graphics.RectF
-import android.graphics.Shader
-import android.graphics.Typeface
-import android.learn.telemetryapp.GridLinesConfiguration.FixedCount
-import android.learn.telemetryapp.GridLinesConfiguration.FixedStep
+import android.learn.telemetryapp.ui.GridLinesConfiguration.FixedCount
+import android.learn.telemetryapp.ui.GridLinesConfiguration.FixedStep
 import android.learn.telemetryapp.datastructures.RingBufferReader
+import android.learn.telemetryapp.ui.CustomTopAppBar
+import android.learn.telemetryapp.ui.CustomTopAppBarDefaults
+import android.learn.telemetryapp.ui.TelemetryChartStyle
+import android.learn.telemetryapp.ui.TelemetrySurfaceView
 import android.os.Bundle
-import android.view.SurfaceHolder
-import android.view.SurfaceView
 import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,16 +22,12 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.statusBars
@@ -60,7 +47,6 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
@@ -68,8 +54,6 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -84,13 +68,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -101,8 +82,6 @@ import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
-import kotlin.math.absoluteValue
-import kotlin.math.round
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
