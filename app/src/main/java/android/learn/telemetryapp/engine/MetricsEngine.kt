@@ -81,7 +81,7 @@ class MetricsEngine @Inject constructor(
    fun startEngine(scope: CoroutineScope) {
       if (engineJob?.isActive == true) return // Already running
 
-      engineJob = scope.launch(Dispatchers.Default) {
+      engineJob = scope.launch(Dispatchers.IO) {
          insertGeneratedValues()
       }
    }

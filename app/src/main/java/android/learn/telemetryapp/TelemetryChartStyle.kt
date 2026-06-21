@@ -13,7 +13,7 @@ data class TelemetryChartStyle(
    val crosshairColor: Color = Color.Magenta.copy(alpha = 0.6f),
    val anchorNodeColor: Color = Color.Green,
    val textStyle: TextStyle = TextStyle(color = Color.Gray, fontSize = 10.sp),
-   val yAxisPadding: Dp = 50.dp,
+   val yAxisPadding: Dp = 60.dp,
    val xAxisPadding: Dp = 40.dp,
    val windowSize: Int = 200,
    val absoluteMaxValue: Float? = null,

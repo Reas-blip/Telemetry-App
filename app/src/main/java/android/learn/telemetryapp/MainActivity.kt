@@ -49,28 +49,46 @@ import android.graphics.Shader
 import android.graphics.Typeface
 import android.learn.telemetryapp.GridLinesConfiguration.FixedCount
 import android.learn.telemetryapp.GridLinesConfiguration.FixedStep
+import android.util.Log
 import android.util.Log.d
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.PlayCircle
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.StopCircle
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.Immutable
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontStyle
@@ -80,7 +98,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.HazeStyle
 import dev.chrisbanes.haze.HazeTint
-import dev.chrisbanes.haze.hazeChild
 import dev.chrisbanes.haze.hazeEffect
 import kotlin.math.absoluteValue
 import kotlin.math.floor
@@ -94,8 +111,26 @@ class MainActivity : ComponentActivity() {
       setContent {
          TelemetryAppTheme {
             val frame = telemetryViewModel.frame.collectAsState().value
+            var engineRunning by remember { mutableStateOf(true) }
             Scaffold(
-               topBar = {FloatingTopAppBar()}
+               topBar = {
+                  FloatingTopAppBar(
+                     engineRunning = engineRunning,
+                     onStartEngine = {
+                        engineRunning = true
+                        telemetryViewModel.resume()
+                     },
+                     onStopEngine = {
+                        engineRunning = false
+                        telemetryViewModel.reset()
+                     },
+                     onPauseEngine = {
+                        engineRunning = false
+                        telemetryViewModel.pause()
+                     }
+
+                  )
+               }
             ) { innerPadding ->
 
                Column(
@@ -106,31 +141,12 @@ class MainActivity : ComponentActivity() {
                   verticalArrangement = Arrangement.SpaceEvenly,
                   horizontalAlignment = Alignment.CenterHorizontally
                ) {
-//                  Row() {
-                  Button(
-                     onClick = { telemetryViewModel.resume() },
-                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                  ) { Text("Start Engine") }
-
-                  Button(
-                     onClick = { telemetryViewModel.pause() },
-                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                  ) { Text("Stop Engine") }
-
+//
                   LiveDashboard(
                      telemetryViewModel = telemetryViewModel, modifier = Modifier.weight(1f)
                   )
 
-                  Button(
-                     onClick = { telemetryViewModel.reset() },
-                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
-                  ) { Text("Reset Engine") }
+
                }
 //               }
             }
@@ -222,7 +238,14 @@ fun LiquidGlassTelemetryChart(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FloatingTopAppBar() {
+fun FloatingTopAppBar(
+   engineRunning: Boolean,
+   onStartEngine: () -> Unit,
+   onStopEngine: () -> Unit,
+   onPauseEngine: () -> Unit,
+
+
+   ) {
    // No hardcoded height or fillMaxSize here!
 
    val hazeState = remember { HazeState() }
@@ -237,29 +260,62 @@ fun FloatingTopAppBar() {
                tint = HazeTint(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = .8f)),
                blurRadius = 24.dp
             )
-         )
-      , // This creates the "floating" gaps
+         ), // This creates the "floating" gaps
       shape = RoundedCornerShape(24.dp),
       tonalElevation = 6.dp
    ) {
-      TopAppBar(
-         title = { Text("Floating Bar") },
+      CustomTopAppBar(
+         title = { Text(text = "Floating Bar", style = MaterialTheme.typography.titleLarge) },
          navigationIcon = {
-            IconButton(onClick = { /* TODO */ }) {
-               Icon(Icons.Default.Menu, contentDescription = "Menu")
-            }
+//
          },
          actions = {
-            IconButton(onClick = { /* TODO */ }) {
-               Icon(Icons.Default.PlayCircle, contentDescription = "Start Engine",
-               modifier = Modifier.fillMaxSize())
+            Box(modifier = Modifier
+               .padding(6.dp)
+               .fillMaxHeight()
+               .aspectRatio(1f)
+               .clip(RoundedCornerShape(10.dp))
+               .background(color = MaterialTheme.colorScheme.primary)
+               .clickable {
+                  if (engineRunning) onPauseEngine() else onStartEngine()
+               }
+            ) {
+               if (engineRunning) Icon(
+                  Icons.Rounded.Pause,
+                  contentDescription = "Pause Engine",
+                  modifier = Modifier.fillMaxSize()
+                  ,   tint = MaterialTheme.colorScheme.onPrimary
+
+               )
+               else Icon(
+                  Icons.Rounded.PlayArrow,
+                  contentDescription = "Start Engine",
+                  modifier = Modifier.fillMaxSize()
+                  ,   tint = MaterialTheme.colorScheme.onPrimary
+
+               )
             }
-            IconButton(onClick = { /* TODO */ }) {
-               Icon(Icons.Default.StopCircle, contentDescription = "Stop Engine", modifier = Modifier.fillMaxSize())
+            Box(modifier = Modifier
+               .padding(6.dp)
+               .fillMaxHeight()
+
+               .aspectRatio(1f)
+               .clip(RoundedCornerShape(10.dp))
+               .background(color = MaterialTheme.colorScheme.primary)
+               .clickable {
+                  onStopEngine()
+               }) {
+               Icon(
+                  Icons.Rounded.Stop,
+                  contentDescription = "Stop Engine",
+                  modifier = Modifier.fillMaxSize()
+               ,   tint = MaterialTheme.colorScheme.onPrimary
+               )
             }
          },
-         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = Color.Transparent // Allows Surface color & shape to show
+         colors = CustomTopAppBarDefaults.colors(
+            containerColor = Color.Transparent, // Allows Surface color & shape to show
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface
          )
       )
    }
@@ -335,6 +391,82 @@ fun TelemetryChart(
          view.updateStyles(chartStyle)
       }
    )
+}
+
+@Immutable
+data class CustomTopAppBarColors(
+   val containerColor: Color,
+   val titleContentColor: Color,
+   val navigationIconContentColor: Color,
+   val actionIconContentColor: Color
+)
+
+object CustomTopAppBarDefaults {
+   @Composable
+   fun colors(
+      containerColor: Color = Color.Transparent, // Defaults to transparent for floating/haze effects
+      titleContentColor: Color = MaterialTheme.colorScheme.onSurface,
+      navigationIconContentColor: Color = MaterialTheme.colorScheme.onSurface,
+      actionIconContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant
+   ): CustomTopAppBarColors {
+      return CustomTopAppBarColors(
+         containerColor = containerColor,
+         titleContentColor = titleContentColor,
+         navigationIconContentColor = navigationIconContentColor,
+         actionIconContentColor = actionIconContentColor
+      )
+   }
+}
+
+@Composable
+fun CustomTopAppBar(
+   title: @Composable () -> Unit,
+   modifier: Modifier = Modifier,
+   navigationIcon: @Composable (() -> Unit)? = null,
+   actions: @Composable (RowScope.() -> Unit)? = null,
+   colors: CustomTopAppBarColors = CustomTopAppBarDefaults.colors() // Injecting the color config
+) {
+   Row(
+      modifier = modifier
+         .fillMaxWidth()
+         .height(64.dp)
+         .background(colors.containerColor) // Setting custom container color
+         .padding(horizontal = 8.dp, vertical = 2.dp)
+         .padding(end = 10.dp)
+      ,
+      verticalAlignment = Alignment.CenterVertically
+   ) {
+      // 1. Navigation Slot
+      if (navigationIcon != null) {
+         CompositionLocalProvider(LocalContentColor provides colors.navigationIconContentColor) {
+            navigationIcon()
+         }
+      }
+
+      // 2. Title Slot
+      Box(
+         modifier = Modifier
+            .padding(start = if (navigationIcon != null) 12.dp else 0.dp)
+      ) {
+         CompositionLocalProvider(LocalContentColor provides colors.titleContentColor) {
+            title()
+         }
+      }
+
+      // 3. The Spacer
+      Spacer(modifier = Modifier.weight(1f))
+
+      // 4. Actions Slot
+      if (actions != null) {
+         Row(
+            verticalAlignment = Alignment.CenterVertically
+         ) {
+            CompositionLocalProvider(LocalContentColor provides colors.actionIconContentColor) {
+               actions()
+            }
+         }
+      }
+   }
 }
 
 private class TelemetrySurfaceView(
@@ -459,7 +591,9 @@ private class TelemetrySurfaceView(
       renderThread = Thread(this, "TelemetrySurfaceThread").apply { start() }
    }
 
-   override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {}
+   override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
+
+   }
 
    override fun surfaceDestroyed(holder: SurfaceHolder) {
       isRunning = false
@@ -486,10 +620,10 @@ private class TelemetrySurfaceView(
          }
 
          // Match target frequency (e.g., ~120Hz display timing cap)
-         try {
-            Thread.sleep(8)
-         } catch (e: Exception) {
-         }
+//         try {
+//            Thread.sleep(8)
+//         } catch (e: Exception) {
+//         }
       }
    }
 
@@ -533,17 +667,18 @@ private class TelemetrySurfaceView(
       val endColor = android.graphics.Color.argb((0.1f * 255).toInt(), 126, 19, 156)
 
       fillPaint.shader = LinearGradient(
-         0f, paddingTop,         // Start at the top of the chart
-         0f, chartHeightBase,    // End at the bottom baseline of the chart
+         paddingLeft, paddingTop,         // Start at the top of the chart
+         paddingLeft, chartHeightBase,    // End at the bottom baseline of the chart
          startColor,
          endColor,
-         Shader.TileMode.CLAMP
+         Shader.TileMode.MIRROR
       )
 
       // Safe to loop directly now; we are protected by withBufferLock inside run()
       reader.forEachValues { index, value, sequenceId, currentMaxValue ->
          val currentMaxValueTarget = chartStyle.absoluteMaxValue ?: currentMaxValue
          detectedRawPeak = currentMaxValueTarget
+
 
          if (smoothPeak <= 0f) smoothPeak = currentMaxValueTarget
 
@@ -566,6 +701,7 @@ private class TelemetrySurfaceView(
             lastYvalue = y
          }
 
+
          if (selectedSequenceId == sequenceId) {
             snappedTelemetryValue = value
             snappedX = x
@@ -574,8 +710,12 @@ private class TelemetrySurfaceView(
       }
 
       if (!isFirstPoint) {
-         fillPath.lineTo(lastXvalue, chartHeightBase)
+         fillPath.lineTo(
+            if (lastXvalue != 0f) lastXvalue else paddingLeft,
+            chartHeightBase
+         )
          fillPath.close()
+         Log.d("Err", "$lastXvalue height$chartHeightBase")
 
          canvas.drawPath(fillPath, fillPaint)
          canvas.drawPath(linePath, linePaint)
@@ -667,11 +807,8 @@ private class TelemetrySurfaceView(
             val tooltipWidth = textWidth + padding * 2
             val tooltipHeight = labelHeight + (padding * 2)
 
-            val tooltipX =
-               if (snappedX + tooltipWidth + 16f > paddingLeft + chartWidth) snappedX - tooltipWidth - 16f else snappedX + 16f
-            val tooltipY = (snappedY - 16f).coerceIn(
-               16f, chartHeight - tooltipHeight - 16f
-            )
+            val tooltipX = if (snappedX + tooltipWidth + 16f > paddingLeft + chartWidth) snappedX - tooltipWidth - 16f else snappedX + 16f
+            val tooltipY = (snappedY - 16f).coerceIn( 1f + paddingTop + tooltipHeight, chartHeightBase - tooltipHeight)
             val textRect = RectF().apply {
                set(
                   tooltipX,
@@ -695,6 +832,11 @@ private class TelemetrySurfaceView(
          val lerpFactor = if (detectedRawPeak > smoothPeak) 0.25f else 0.05f
          smoothPeak += (detectedRawPeak - smoothPeak) * lerpFactor
       }
+   }
+
+   private fun clearPaths() {
+      linePath.reset()
+      fillPath.reset()
    }
 }
 
@@ -785,7 +927,6 @@ private fun drawFixedCountGridY(
       val textY = if ((y - labelHeight - paddingTop) < 0) y + labelHeight
       else y + (labelHeight / 2f)
 
-      if (i == 0) d("ERRor", "y:$y, textY:$textY, labelHeight:$labelHeight")
 
       canvas.drawLine(
 //         color = textStyle.color.copy(alpha = 0.12f)alpha,

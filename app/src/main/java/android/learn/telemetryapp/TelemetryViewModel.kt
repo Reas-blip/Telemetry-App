@@ -24,7 +24,7 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
    init {
 
       metricsEngine.setUpdateListener { _frame.value++ }
-//      metricsEngine.startEngine(viewModelScope)
+      metricsEngine.startEngine(viewModelScope)
    }
 
 
@@ -57,6 +57,8 @@ class TelemetryViewModel @Inject constructor(private val metricsEngine: MetricsE
    fun reset() = viewModelScope.launch(Dispatchers.IO) {
       metricsEngine.stopEngine()
       metricsEngine.clearBuffers()
+      _frame.value = 0
+
    }
    fun pause() = viewModelScope.launch(Dispatchers.IO) {
       metricsEngine.stopEngine()
