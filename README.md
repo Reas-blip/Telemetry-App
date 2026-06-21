@@ -19,6 +19,5 @@ This dashboard is engineered from the ground up to handle high-frequency telemet
 * **Render-Safe Blur:** Integrated Chris Banes' `Haze` library to create a dynamic liquid-glass UI layer, applying heavy blur radii and micro-texture noise without impacting the draw loop of the underlying real-time graph.
 
 
-
-https://github.com/user-attachments/assets/ecfcad03-c2e1-4c46-9ac8-b56f27602646
+https://github.com/user-attachments/assets/86f66a79-efe9-4aac-8cd7-1e0e5bb7977d
 
